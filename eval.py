@@ -21,10 +21,10 @@ if __name__ =="__main__":
     parser.add_argument("--name",type=str,default="new_project")
     #---------data parameters---------
     parser.add_argument("--lower_bound", type=float, default=0.0)
-    parser.add_argument("--upper_bound", type=float, default=1.0)
-    parser.add_argument("--step", type=float, default=1e-5)
+    parser.add_argument("--upper_bound", type=float, default=10.0)
+    parser.add_argument("--step", type=float, default=1e-4)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
-    parser.add_argument("--test_bia", type=float, default=1e-6)
+    parser.add_argument("--test_bia", type=float, default=5e-5)
     parser.add_argument("--batchsize", type=int, default=32)
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
@@ -99,7 +99,7 @@ if __name__ =="__main__":
         plt.legend()
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
-        save_path = os.path.join(PATH,"plots", f"{args.name}_plot.png")
+        save_path = os.path.join(PATH,"plots", f"{args.name}.png")
         plt.savefig(save_path, dpi=150)
         plt.close()
         print(f"Plot saved to {save_path}")

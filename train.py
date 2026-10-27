@@ -22,15 +22,15 @@ if __name__ =="__main__":
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--activation", type=str, default="gelu", choices=["relu", "gelu", "tanh", "sin", "sigmoid"])
     #---------training parameters---------
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=1)
     parser.add_argument("--batchsize", type=int, default=32)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "sgd"])
     parser.add_argument("--loss", type=str, default="mse", choices=["mse", "l1","smooth_l1","huber"])
     #---------data parameters---------
     parser.add_argument("--lower_bound", type=float, default=0.0)
-    parser.add_argument("--upper_bound", type=float, default=1.0)
-    parser.add_argument("--step", type=float, default=1e-5)
+    parser.add_argument("--upper_bound", type=float, default=10.0)
+    parser.add_argument("--step", type=float, default=1e-4)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
