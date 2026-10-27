@@ -1,5 +1,6 @@
 import argparse
-from sympy import arg
+import os
+import tqdm
 import torch
 from model.MLP import MyModel
 from utils.resolution import LazyDataset, ActDataset, MathExpr
@@ -10,6 +11,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 if __name__ =="__main__":
 
     PATH="./out"
+    os.makedirs(PATH, exist_ok=True)
 
     parser = argparse.ArgumentParser()
     parser.add_argument("formula")
@@ -31,11 +33,9 @@ if __name__ =="__main__":
     parser.add_argument("--step", type=float, default=1e-5)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
     #---------other parameters---------
-    parser.add_argument("--device", type=str, default="cuda")
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
-    exp=MathExpr(args.formula)
     if args.lazy_or_act=="lazy":
         dataset=LazyDataset(
             formula=args.formula,
@@ -52,6 +52,15 @@ if __name__ =="__main__":
         )
     dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=True)
 
+    model=MyModel(
+                input_size=len(dataset.expr.vars),
+                output_size=1,
+                hidden_size=args.hidden_size,
+                num_layers=args.num_layers,
+                dropout=args.dropout,
+                activation=args.activation,
+        ).to(DEVICE)
+
     if args.loss=="mse":
         loss_fn=torch.nn.MSELoss()
     elif args.loss=="l1":
@@ -65,32 +74,28 @@ if __name__ =="__main__":
         optimizer=torch.optim.Adam
     elif args.optimizer=="sgd":
         optimizer=torch.optim.SGD
-
-    model=MyModel(
-            input_size=len(exp.vars),
-            output_size=1,
-            hidden_size=args.hidden_size,
-            num_layers=args.num_layers,
-            dropout=args.dropout,
-            activation=args.activation,
-    ).to(DEVICE)
+    optimizer=optimizer(model.parameters(), lr=args.lr)
 
     for epoch in range(args.epochs):
         model.train()
-        for i, (x, y) in enumerate(dataloader):
+        bar=tqdm.tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
+        total_loss=0.0
+        for i, (x, y) in enumerate(bar):
             x=x.to(DEVICE)
             y=y.to(DEVICE)
-            optimizer=optimizer(model.parameters(), lr=args.lr)
-            optimizer.zero_grad()
             y_pred=model(x)
             loss=loss_fn(y_pred, y)
+            total_loss+=loss.item()
+            bar.set_postfix({"loss": total_loss/(i+1)})
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+        print(f"Epoch {epoch+1}/{args.epochs}, Loss: {total_loss/len(dataloader)}")
 
-        
-
-            
-
-
-
+    checkpoint={
+        "name": args.name,
+        "formula": args.formula,
+        "model_state_dict": model.state_dict(),
+        "args": args
+    }
+    torch.save(checkpoint, f"{PATH}/{args.name}.pt")

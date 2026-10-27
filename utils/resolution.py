@@ -2,6 +2,8 @@ import ast
 from itertools import product
 import math
 
+import torch
+
 class MathExpr:
     """
     Wrap a mathematical expression string as a callable object.
@@ -166,8 +168,10 @@ class LazyDataset:
         for j in range(k - 1, -1, -1):
             coords[j] = index % count
             index //= count
-        args = [self.lower_bound + c * self.step for c in coords]
-        return self.expr(*args)
+        args = tuple(self.lower_bound + c * self.step for c in coords) 
+        x = torch.tensor(args, dtype=torch.float32)          # (k,)，k=1 时 (1,)
+        y = torch.tensor([self.expr(*args)], dtype=torch.float32)  # (1,)
+        return x, y
 
 class ActDataset:
     def __init__(self,
@@ -192,7 +196,11 @@ class ActDataset:
         self.total_count = count ** k
 
         axis = [self.lower_bound + c * self.step for c in range(count)]
-        self._values = [self.expr(*args) for args in product(axis, repeat=k)]
+        self._values = tuple(
+            (torch.tensor(args, dtype=torch.float32),
+            torch.tensor([self.expr(*args)], dtype=torch.float32))
+            for args in product(axis, repeat=k)
+        )
     def __len__(self):
         return self.total_count
     def __getitem__(self, index):
