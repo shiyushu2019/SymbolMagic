@@ -64,6 +64,9 @@ if __name__ =="__main__":
                   activation=checkpoint["args"].activation
                  ).to(DEVICE)
     model.load_state_dict(checkpoint["model_state_dict"])
+    total_params = sum(p.numel() for p in model.parameters())
+    params_m = total_params / 1e6
+    print(f"Model Params: {params_m:.6f} M")
 
     model.eval()
     xs, y_preds, ys = [], [], []

@@ -4,6 +4,7 @@ import tqdm
 import torch
 from model.MLP import MyModel
 from utils.resolution import LazyDataset, ActDataset, MathExpr
+import torch.nn.utils as U
 from torch.utils.data import DataLoader
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
@@ -60,6 +61,9 @@ if __name__ =="__main__":
                 dropout=args.dropout,
                 activation=args.activation,
         ).to(DEVICE)
+    total_params = sum(p.numel() for p in model.parameters())
+    params_m = total_params / 1e6
+    print(f"Model Params: {params_m:.6f} M")
 
     if args.loss=="mse":
         loss_fn=torch.nn.MSELoss()
@@ -86,8 +90,9 @@ if __name__ =="__main__":
             y_pred=model(x)
             loss=loss_fn(y_pred, y)
             total_loss+=loss.item()
-            bar.set_postfix({"loss": total_loss/(i+1)})
             loss.backward()
+            grad_norm=U.clip_grad_norm_(model.parameters(),max_norm=1.0)
+            bar.set_postfix({"loss": total_loss/(i+1),"grad_norm":grad_norm.item()})
             optimizer.step()
             optimizer.zero_grad()
         print(f"Epoch {epoch+1}/{args.epochs}, Loss: {total_loss/len(dataloader)}")
