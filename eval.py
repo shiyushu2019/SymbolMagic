@@ -10,6 +10,7 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 
 if __name__ =="__main__":
 
@@ -121,13 +122,49 @@ if __name__ =="__main__":
         order = xs.argsort()
         xs, y_preds, ys = xs[order], y_preds[order], ys[order]
         plt.figure(figsize=(8, 5))
-        plt.plot(xs, ys, label="correct", linewidth=1.5)
-        plt.plot(xs, y_preds, label="predict", linewidth=1.5, linestyle="--")
-        plt.xlabel("x")
-        plt.ylabel("y")
-        plt.title(f"{formula}")
-        plt.legend()
-        plt.grid(True, alpha=0.3)
+        ax = plt.gca()
+        ax.plot(xs, ys, label="correct", linewidth=1.5)
+        ax.plot(xs, y_preds, label="predict", linewidth=1.5, linestyle="--")
+        ax.set_xlabel("x")
+        ax.set_ylabel("y")
+        ax.set_title(f"{formula}")
+        ax.legend()
+        ax.grid(True, alpha=0.3)
+
+        if len(xs) > 1:
+            step_ax = ax.inset_axes([0.58, 0.08, 0.36, 0.32])
+            step_ax.plot(xs[:5], ys[:5], linewidth=1.2)
+            step_ax.plot(xs[:5], y_preds[:5], linewidth=1.2, linestyle="--")
+            x_start, x_end = xs[0], xs[1]
+            x_left = x_start - args.step * 0.5
+            x_right = x_start + args.step * 4.5
+            step_ax.set_xlim(x_left, x_right)
+            step_ax.set_xticks([x_left, (x_left + x_right) / 2, x_right])
+            step_ax.xaxis.set_major_formatter(FormatStrFormatter("%.1e"))
+            local_values = list(ys[:5]) + list(y_preds[:5])
+            y_min, y_max = min(local_values), max(local_values)
+            y_span = max(y_max - y_min, max(abs(y_min), abs(y_max), 1.0) * 0.1)
+            arrow_y = y_max + y_span * 0.3
+            step_ax.set_ylim(y_min - y_span * 0.15, y_max + y_span * 0.65)
+            step_ax.annotate(
+                "",
+                xy=(x_end, arrow_y),
+                xytext=(x_start, arrow_y),
+                arrowprops={"arrowstyle": "<->", "color": "tab:red"},
+            )
+            step_ax.text(
+                (x_start + x_end) / 2,
+                arrow_y + y_span * 0.05,
+                f"1 step = {args.step:g}",
+                ha="center",
+                va="bottom",
+                fontsize=8,
+                color="tab:red",
+            )
+            step_ax.set_title("One-step interval", fontsize=8)
+            step_ax.set_xlabel("x", fontsize=8, labelpad=0)
+            step_ax.grid(True, alpha=0.3)
+
         plt.tight_layout()
         save_path = os.path.join(PATH,"plots", f"{args.name}.png")
         plt.savefig(save_path, dpi=150)
