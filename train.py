@@ -111,18 +111,20 @@ if __name__ =="__main__":
         model.train()
         bar=tqdm.tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
         total_loss=0.0
+        n_seen=0
         for i, (x, y) in enumerate(bar):
             x=x.to(DEVICE)
             y=y.to(DEVICE)
             y_pred=model(x)
             loss=loss_fn(y_pred, y)
-            total_loss+=loss.item()
+            total_loss+=loss.item()*len(x)
+            n_seen+=len(x)
             loss.backward()
             grad_norm=U.clip_grad_norm_(model.parameters(),max_norm=1.0)
-            bar.set_postfix({"loss": total_loss/(i+1),"grad_norm":grad_norm.item()})
+            bar.set_postfix({"loss": total_loss/n_seen,"grad_norm":grad_norm.item()})
             optimizer.step()
             optimizer.zero_grad()
-        print(f"Epoch {epoch+1}/{args.epochs}, Loss: {total_loss/len(dataloader)}")
+        print(f"Epoch {epoch+1}/{args.epochs}, Loss: {total_loss/n_seen}")
 
     if args.debug:
         print("saving model......")
