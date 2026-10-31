@@ -38,12 +38,6 @@ if __name__ =="__main__":
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
 
-    total_samples=int((args.upper_bound-args.lower_bound)/args.step)
-    if total_samples//args.hidden_size<10:
-        print(f"Warning: oversampling. total_samples//args.hidden_size<10")
-    if args.step < max(args.lower_bound, args.upper_bound) * 1.2e-7:
-        print(f"Warning: very small step size. args.step < max(args.lower_bound, args.upper_bound) * 1.2e-7")
-
     if args.debug:
         print("solving data......")
     
@@ -71,6 +65,13 @@ if __name__ =="__main__":
 
     if args.debug:
         print("data solved!")
+
+    if len(dataset)//args.hidden_size>10:
+        print(f"Warning: oversampling. total_samples//args.hidden_size>10")
+    if len(dataset)<1000:
+        print(f"Warning: Are you sure just use <1000 points?")
+    if args.step < max(abs(args.lower_bound), abs(args.upper_bound)) * 1.2e-7:
+        print(f"Warning: very small step size. args.step < max(abs(args.lower_bound), abs(args.upper_bound)) * 1.2e-7")
 
     if args.debug:
         print("building model......")

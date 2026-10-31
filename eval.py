@@ -40,8 +40,8 @@ if __name__ =="__main__":
         print(f"Warning: upper_bound in checkpoint ({checkpoint['args'].upper_bound}) is different from the one provided ({args.upper_bound}). It's ok if you know what you are doing.")
     if abs(args.step-checkpoint["args"].step)>=1e-12 :
         print(f"Warning: step in checkpoint ({checkpoint['args'].step}) is different from the one provided ({args.step}). It's ok if you know what you are doing.")
-    if args.test_bia>=args.step:
-        print(f"test_bia>=step, it may cause data leak.")
+    if args.test_bia % args.step == 0:
+        print(f"test_bia is a multiple of step, it may cause data leak.")
 
     if args.debug:
         print("solving data......")
@@ -76,7 +76,7 @@ if __name__ =="__main__":
 
     if args.debug:
         print("building model......")
-        
+
     model=MyModel(input_size=len(exp.vars),
                   output_size=1,
                   hidden_size=checkpoint["args"].hidden_size,
