@@ -21,11 +21,11 @@ if __name__ =="__main__":
     parser.add_argument("--name",type=str,default="new_project")
     #---------data parameters---------
     parser.add_argument("--lower_bound", type=float, default=0.0)
-    parser.add_argument("--upper_bound", type=float, default=10.0)
-    parser.add_argument("--step", type=float, default=1e-4)
+    parser.add_argument("--upper_bound", type=float, default=1.0)
+    parser.add_argument("--step", type=float, default=1e-5)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
-    parser.add_argument("--test_bia", type=float, default=5e-5)
-    parser.add_argument("--batchsize", type=int, default=32)
+    parser.add_argument("--test_bia", type=float, default=5e-6)
+    parser.add_argument("--batchsize", type=int, default=32768)
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
@@ -37,6 +37,14 @@ if __name__ =="__main__":
         print(f"Warning: lower_bound in checkpoint ({checkpoint['args'].lower_bound}) is different from the one provided ({args.lower_bound}). It's ok if you know what you are doing.")
     if abs(args.upper_bound-checkpoint["args"].upper_bound)>=1e-12:
         print(f"Warning: upper_bound in checkpoint ({checkpoint['args'].upper_bound}) is different from the one provided ({args.upper_bound}). It's ok if you know what you are doing.")
+    if abs(args.step-checkpoint["args"].step)>=1e-12 :
+        print(f"Warning: step in checkpoint ({checkpoint['args'].step}) is different from the one provided ({args.step}). It's ok if you know what you are doing.")
+    if args.test_bia>=args.step:
+        print(f"test_bia>=step, it may cause data leak.")
+
+    if args.debug:
+        print("solving data......")
+    
     if args.lazy_or_act=="lazy":
         dataset=LazyDataset(
             formula=checkpoint["formula"],
@@ -51,11 +59,23 @@ if __name__ =="__main__":
             upper_bound=args.upper_bound,
             step=args.step
         )
-    dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=False)
+    dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=False,num_workers=12)
+
+    # ensure dataset is all legal
+    temp=0
+    for x in dataloader:
+        temp=id(x)
+
+    if args.debug:
+        print("data solved!")
 
     formula=checkpoint["formula"]
     print(f"Loaded formula: {formula}")
     exp=MathExpr(checkpoint["formula"])
+
+    if args.debug:
+        print("building model......")
+        
     model=MyModel(input_size=len(exp.vars),
                   output_size=1,
                   hidden_size=checkpoint["args"].hidden_size,
@@ -67,6 +87,9 @@ if __name__ =="__main__":
     total_params = sum(p.numel() for p in model.parameters())
     params_m = total_params / 1e6
     print(f"Model Params: {params_m:.6f} M")
+
+    if args.debug:
+        print("model built!")
 
     model.eval()
     xs, y_preds, ys = [], [], []
