@@ -33,6 +33,7 @@ if __name__ =="__main__":
     parser.add_argument("--upper_bound", type=float, default=1.0)
     parser.add_argument("--step", type=float, default=1e-5)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
+    parser.add_argument("--num_workers", type=int, default=16)
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
@@ -60,7 +61,7 @@ if __name__ =="__main__":
             upper_bound=args.upper_bound,
             step=args.step
         )
-    dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=True, num_workers=16)
+    dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=True, num_workers=args.num_workers)
 
     # ensure dataset is all legal
     temp=0
