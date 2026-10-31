@@ -58,16 +58,17 @@ if __name__ =="__main__":
     dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=True, num_workers=args.num_workers)
 
     # ensure dataset is all legal
-    temp=0
-    for x in dataloader:
-        temp=id(x)
+    if args.lazy_or_act=="lazy":
+        temp=0
+        for x in dataloader:
+            temp=id(x)
     print(f"samples: {len(dataset)}")
 
     if args.debug:
         print("data solved!")
 
-    if len(dataset)//args.hidden_size>10:
-        print(f"Warning: oversampling. total_samples//args.hidden_size>10")
+    if len(dataset)//args.hidden_size>1000:
+        print(f"Warning: oversampling. len(dataset)//args.hidden_size>1000")
     if len(dataset)<1000:
         print(f"Warning: Are you sure just use <1000 points?")
     if args.step < max(abs(args.lower_bound), abs(args.upper_bound)) * 1.2e-7:

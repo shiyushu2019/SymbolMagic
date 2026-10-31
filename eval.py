@@ -40,7 +40,8 @@ if __name__ =="__main__":
         print(f"Warning: upper_bound in checkpoint ({checkpoint['args'].upper_bound}) is different from the one provided ({args.upper_bound}). It's ok if you know what you are doing.")
     if abs(args.step-checkpoint["args"].step)>=1e-12 :
         print(f"Warning: step in checkpoint ({checkpoint['args'].step}) is different from the one provided ({args.step}). It's ok if you know what you are doing.")
-    if args.test_bia % args.step == 0:
+    q = args.test_bia / args.step
+    if abs(q - round(q)) < 1e-6:
         print(f"test_bia is a multiple of step, it may cause data leak.")
 
     if args.debug:
@@ -63,9 +64,11 @@ if __name__ =="__main__":
     dataloader=DataLoader(dataset, batch_size=args.batchsize, shuffle=False,num_workers=args.num_workers)
 
     # ensure dataset is all legal
-    temp=0
-    for x in dataloader:
-        temp=id(x)
+    if args.lazy_or_act=="lazy":
+        temp=0
+        for x in dataloader:
+            temp=id(x)
+    print(f"samples: {len(dataset)}")
 
     if args.debug:
         print("data solved!")
