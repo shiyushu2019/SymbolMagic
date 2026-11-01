@@ -9,21 +9,23 @@ from torch.utils.data import DataLoader
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
+DEFAULT_FORMULA="0.5+0.5*tanh(sin(7.13*(10*x))+0.83*sin(13.71*(10*x)+0.47)+0.61*sin(2.337*(10*x)**2+1.19)+0.47*cos(31.91*exp(0.11*(10*x))+2.03)+0.31*sin(101.3*(10*x)/(1+0.2*(10*x))))"
+
 if __name__ =="__main__":
 
     PATH="./out"
     os.makedirs(PATH, exist_ok=True)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("formula")
+    parser.add_argument("formula", nargs="?",type=str, default=DEFAULT_FORMULA)
     parser.add_argument("--name",type=str,default="new_project")
     #---------model parameters---------
-    parser.add_argument("--num_layers", type=int, default=8)
-    parser.add_argument("--hidden_size", type=int, default=1000)
+    parser.add_argument("--num_layers", type=int, default=16)
+    parser.add_argument("--hidden_size", type=int, default=3000)
     parser.add_argument("--dropout", type=float, default=0.0)
     parser.add_argument("--activation", type=str, default="gelu", choices=["relu", "gelu", "tanh", "sin", "sigmoid"])
     #---------training parameters---------
-    parser.add_argument("--epochs", type=int, default=100)
+    parser.add_argument("--epochs", type=int, default=500)
     parser.add_argument("--batchsize", type=int, default=32768)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "sgd"])
@@ -109,7 +111,7 @@ if __name__ =="__main__":
 
     for epoch in range(args.epochs):
         model.train()
-        bar=tqdm.tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}")
+        bar=tqdm.tqdm(dataloader, desc=f"Epoch {epoch+1}/{args.epochs}",mininterval=1.0,)
         total_loss=0.0
         n_seen=0
         for i, (x, y) in enumerate(bar):
