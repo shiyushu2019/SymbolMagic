@@ -26,8 +26,8 @@ if __name__ =="__main__":
     parser.add_argument("--activation", type=str, default="gelu", choices=["relu", "gelu", "tanh", "sin", "sigmoid"])
     #---------training parameters---------
     parser.add_argument("--epochs", type=int, default=500)
-    parser.add_argument("--batchsize", type=int, default=32768)
-    parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--batchsize", type=int, default=256)
+    parser.add_argument("--lr", type=float, default=1e-6)
     parser.add_argument("--optimizer", type=str, default="adam", choices=["adam", "sgd"])
     parser.add_argument("--loss", type=str, default="mse", choices=["mse", "l1","smooth_l1","huber"])
     #---------data parameters---------
@@ -35,7 +35,7 @@ if __name__ =="__main__":
     parser.add_argument("--upper_bound", type=float, default=1.0)
     parser.add_argument("--step", type=float, default=1e-5)
     parser.add_argument("--lazy_or_act", type=str,default="lazy", choices=["lazy", "act"])
-    parser.add_argument("--num_workers", type=int, default=16)
+    parser.add_argument("--num_workers", type=int, default=8)
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
