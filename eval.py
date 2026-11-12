@@ -30,6 +30,7 @@ if __name__ =="__main__":
     parser.add_argument("--num_workers", type=int, default=8)
     #---------other parameters---------
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--show_one_step", action="store_true")
     args = parser.parse_args()
 
     checkpoint=torch.load(os.path.join(PATH, f"{args.name}.pt"), map_location=DEVICE,weights_only=False)
@@ -138,10 +139,10 @@ if __name__ =="__main__":
         ax.set_xlabel("x")
         ax.set_ylabel("y")
         ax.set_title(f"{formula}")
-        ax.legend()
+        ax.legend(loc="upper left")
         ax.grid(True, alpha=0.3)
 
-        if len(xs) > 1:
+        if args.show_one_step and len(xs) > 1:
             step_ax = ax.inset_axes([0.58, 0.08, 0.36, 0.32])
             step_ax.plot(xs[:5], ys[:5], linewidth=1.2)
             step_ax.plot(xs[:5], y_preds[:5], linewidth=1.2, linestyle="--")
