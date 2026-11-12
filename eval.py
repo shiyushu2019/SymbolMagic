@@ -125,6 +125,16 @@ if __name__ =="__main__":
         ax = plt.gca()
         ax.plot(xs, ys, label="correct", linewidth=1.5)
         ax.plot(xs, y_preds, label="predict", linewidth=1.5, linestyle="--")
+        train_args = checkpoint["args"]
+        train_count = 0
+        while train_args.lower_bound + train_count * train_args.step < train_args.upper_bound - 1e-10:
+            train_count += 1
+        train_x = [
+            train_args.lower_bound + i * train_args.step
+            for i in range(train_count)
+        ]
+        train_y = [exp(x) for x in train_x]
+        ax.scatter(train_x, train_y, color="red", s=8, label="train samples", zorder=3)
         ax.set_xlabel("x")
         ax.set_ylabel("y")
         ax.set_title(f"{formula}")
